@@ -1,0 +1,131 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>领券商城</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="format-detection" content="telephone=no">
+<meta http-equiv="Expires" content="-1">
+<meta http-equiv="Cache-Control" content="no-cache">
+<meta http-equiv="Pragma" content="no-cache">
+<meta name="Keywords" content="领券商城" />
+<meta name="description" content="领券商城" />
+<link rel="stylesheet" type="text/css" href="css/style.css">
+</head>
+<body style="background:#f3f3f3;">
+<!--首页顶条-->
+<div class="indextop">
+    <div class="topbar">
+        <form method="get" id="form">
+        <div class="search">
+            <input class="searchinput" name="ks" id="ks" value="耳机" type="search" placeholder="搜索商品">
+        </div>
+            <input type="hidden" name="wx_gid" value="3636">
+        <div class="ewm"><img src="/theme/index/default/images/ico-ewm.png"></div>
+        </form>
+    </div>
+</div>
+
+<!--首页顶条end-->
+
+<!--首页内容区-->
+<div class="indexviewport">
+    <!--产品列表-->
+    <div class="indexlist">
+    	<ul id="list">
+        </ul>
+    </div>
+    <!--产品列表end-->
+</div>
+<!--首页内容区end-->
+<script type="text/javascript" src="js/layui.js"></script>
+<script>
+    layui.use(['flow','layer'], function(){
+        var $ = layui.jquery; //不用额外加载jQuery，flow模块本身是有依赖jQuery的，直接用即可。
+        var flow = layui.flow;
+        var layer = layui.layer;
+        var ks = "耳机";
+        var wx_gid = 3636;
+        flow.load({
+            elem: '#list', //指定列表容器
+            isLazyimg: true, //图片懒加载
+            end: '<p style="text-align: center;font-size: 14px;color: #aaa;"> 没有更多了</p>' //
+            ,done: function(page, next){ //到达临界点（默认滚动触发），触发下一页
+                var lis = [];
+                //以jQuery的Ajax请求为例，请求下一页数据（注意：page是从2开始返回）
+                $.post('/goods/goodslist?page='+page+'&ks='+ks+'&wx_gid='+wx_gid, function(res){
+                    //假设你的列表返回在data集合中
+                    layui.each(res.data, function(index, item){
+                        if(item.b_id==2){
+                            var pro_price = "秒杀价";
+                            var coupons_price = '<p class="p1">&nbsp;&nbsp;</p> <p class="p2"></p> <p class="p3" style="margin-top:-10px;">去秒杀</p> </a> </div> </li>';
+                        }else {
+                            var pro_price = "券后价";
+                            var coupons_price = '<p class="p1"><font class="font10">￥</font>'+ item.coupons_price +'</p> <p class="p2">优惠券</p> <p class="p3">领券购买</p> </a> </div> </li>';
+                        }
+                        lis.push(
+                            '<li><div class="left"> <a href="/goods/index?id='+ item.id +'&wx_gid='+ wx_gid +'"> <img lay-src="'+ item.img_url +'"> ' +
+                            '<p class="p1">'+ item.title +'</p> <p class="p2"></p> <p class="p3">' +
+                            '<span class="span1"><font class="blank">原价:</font><font class="yj">￥'+ item.market_price +'</font></span>' +
+                            '<span class="span2"><font class="blank">'+pro_price+':</font>￥'+ item.pro_price +'</span></p></a> </div>' +
+                            '<div class="right"> <a href="/goods/index?id='+ item.id +'&wx_gid='+ wx_gid +'"> ' +coupons_price
+
+                        );
+                    });
+
+                    //执行下一页渲染，第二参数为：满足“加载更多”的条件，即后面仍有分页
+                    //pages为Ajax返回的总页数，只有当前页小于总页数的情况下，才会继续出现加载更多
+                    next(lis.join(''), page < res.pages);
+                },'json');
+            }
+        });
+        $('#search').click(function(){
+            var ks = $("#ks").val();
+            if(ks==''){
+                layer.alert('请输入商品关键词', {
+                    icon: 2,
+                });
+                return false;
+            }
+            $("#form").submit();
+        });
+    });
+
+</script>
+<script src="js/jquery.min.js" charset="utf-8"></script>
+<script>
+    function gotoTop(min_height) {
+        // 预定义返回顶部的html代码，它的css样式默认为不显示
+        var gotoTop_html = '<div id="gotoTop" class="fay-tip"></div>';
+        // 将返回顶部的html代码插入页面上id为page的元素的末尾
+        $("#list").append(gotoTop_html);
+        $("#gotoTop").click(function() {
+            $('html,body').animate({
+                scrollTop : 0
+            }, 700);
+        }).hover(function() {
+            $(this).addClass("hover");
+        }, function() {
+            $(this).removeClass("hover");
+        });
+        // 获取页面的最小高度，无传入值则默认为600像素
+        min_height ? min_height = min_height : min_height = 0;
+        // 为窗口的scroll事件绑定处理函数
+        $(window).scroll(function() {
+            // 获取窗口的滚动条的垂直位置
+            var s = $(window).scrollTop();
+            // 当窗口的滚动条的垂直位置大于页面的最小高度时，让返回顶部元素渐现，否则渐隐
+            if (s > min_height) {
+                $("#gotoTop").fadeIn(100);
+            } else {
+                $("#gotoTop").fadeOut(200);
+            }
+        });
+    }
+    gotoTop();
+</script>
+</body>
+</html>
